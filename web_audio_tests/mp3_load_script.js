@@ -3,6 +3,12 @@ window.onload = function() {
 
     console.log('javascript file started');
     var context = init();
+    var reverbBuffer;
+    var mp3Buffer;
+
+    // Load audio
+    loadAudio('irHall.ogg', reverbBuffer, false);
+    loadAudio('robyn_call_your_girlfriend.m4a', mp3Buffer, true);
 
     var bufferSize = 4096;
 
@@ -36,11 +42,8 @@ window.onload = function() {
       return context;
     }
 
-    // Code to load the MP3
-    var mp3Buffer = null;
-
-    function loadMP3(url) {
-      console.log('loadMP3');
+    function loadAudio(url, buf, play_after) {
+      console.log('loadAudio');
       var request = new XMLHttpRequest();
       request.open('GET', url, true);
       request.responseType = 'arraybuffer';
@@ -49,28 +52,42 @@ window.onload = function() {
       request.onload = function() {
         context.decodeAudioData(request.response,
             function(buffer) {
-                mp3Buffer = buffer;
-                playSound(mp3Buffer);
+                buf = buffer;
+                if (play_after) {
+                    playSound();
+                }
             },
             function(e) {console.log("Error with decoding audio data" + e.err);}
         );
       }
       request.send();
-      
-      console.log('MP3 request sent');
+      console.log('Audio request sent');
     }
 
     // Code to play the MP3
-    function playSound(buffer) {
+    function playSound() {
       console.log('About to start playing');
+      console.log('mp3Buffer: ', mp3Buffer);
+      console.log('volume_effect: ', volume_effect);
+      
+
+      // Create audio source
       var source = context.createBufferSource(); // creates a sound source
-      source.buffer = buffer;                    // tell the source which sound to play
-      source.connect(empty_effect);
-      empty_effect.connect(context.destination);
+      source.buffer = mp3Buffer;                    // tell the source which sound to play
+
+      // Reverb
+      //var reverb = context.createConvolver();
+      //reverb.buffer = reverbBuffer;
+
+      // Connect up effects
+      source.connect(volume_effect);
+      volume_effect.connect(context.destination);
+      //reverb.connect(context.destination);
+
       source.start(0);                           // play the source now
     }
 
-    var empty_effect = (function() {
+    var volume_effect = (function() {
         var node = context.createScriptProcessor(bufferSize, 1, 1);
         node.onaudioprocess = function(e) {
             var input = e.inputBuffer.getChannelData(0);
@@ -82,7 +99,9 @@ window.onload = function() {
         };
         return node;
     })();
+  
+
 
     // Now actually load and play the MP3
-    loadMP3('robyn_call_your_girlfriend.m4a');
+    
 };
