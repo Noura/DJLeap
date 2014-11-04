@@ -3,12 +3,14 @@ window.onload = function() {
 
     console.log('javascript file started');
     var context = init();
-    var reverbBuffer;
-    var mp3Buffer;
+    var buffers = {
+        reverb: null,
+        mp3: null,
+    };
 
     // Load audio
-    loadAudio('irHall.ogg', reverbBuffer, false);
-    loadAudio('robyn_call_your_girlfriend.m4a', mp3Buffer, true);
+    loadAudio('irHall.ogg', 'reverb');
+    loadAudio('robyn_call_your_girlfriend.m4a', 'mp3');
 
     var bufferSize = 4096;
 
@@ -52,8 +54,16 @@ window.onload = function() {
       request.onload = function() {
         context.decodeAudioData(request.response,
             function(buffer) {
-                buf = buffer;
-                if (play_after) {
+                buffers[buf] = buffer;
+                var bs = Object.keys(buffers);
+                var play = true;
+                for (var i = 0; i < bs.length; i++) {
+                    if (buffers[bs[i]] === null) {
+                        play = false;
+                        break;
+                    }
+                }
+                if (play) {
                     playSound();
                 }
             },
@@ -67,22 +77,19 @@ window.onload = function() {
     // Code to play the MP3
     function playSound() {
       console.log('About to start playing');
-      console.log('mp3Buffer: ', mp3Buffer);
-      console.log('volume_effect: ', volume_effect);
-      
 
       // Create audio source
       var source = context.createBufferSource(); // creates a sound source
-      source.buffer = mp3Buffer;                    // tell the source which sound to play
+      source.buffer = buffers.mp3;               // tell the source which sound to play
 
       // Reverb
-      //var reverb = context.createConvolver();
-      //reverb.buffer = reverbBuffer;
+      var reverb = context.createConvolver();
+      reverb.buffer = buffers.reverb;
 
       // Connect up effects
       source.connect(volume_effect);
-      volume_effect.connect(context.destination);
-      //reverb.connect(context.destination);
+      volume_effect.connect(reverb);
+      reverb.connect(context.destination);
 
       source.start(0);                           // play the source now
     }
