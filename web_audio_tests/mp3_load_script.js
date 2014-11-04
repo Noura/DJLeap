@@ -7,6 +7,11 @@ window.onload = function() {
         reverb: null,
         mp3: null,
     };
+      // Gain nodes
+      var gain1 = context.createGain();
+      gain1.gain.value = 0.5;
+      var gain2 = context.createGain();
+      gain2.gain.value = 0.5;
 
     // Load audio
     loadAudio('irHall.ogg', 'reverb');
@@ -21,12 +26,20 @@ window.onload = function() {
     };
     Leap.loop({ enableGestures: true }, function(frame) {
         // left and right hands
+        // set hand data
         for (var i = 0; i < frame.hands.length; i++) {
             var h = frame.hands[i];
             hand.pinch = h.pinchStrength;
             hand.x = h.palmPosition[0];
             hand.y = h.palmPosition[1];
         }
+
+        // set gain values
+       // gain2.gain.value = Math.abs(hand.x)/400.0;
+        //gain1.gain.value = 1.0 - gain2.gain.value;
+        //gain2.gain.value = 0.5;
+        //gain1.gain.value = 0.5;
+
         console.log('hand x', hand.x, 'y', hand.y, 'pinch', hand.pinch);
     });
 
@@ -44,7 +57,7 @@ window.onload = function() {
       return context;
     }
 
-    function loadAudio(url, buf, play_after) {
+    function loadAudio(url, buf) {
       console.log('loadAudio');
       var request = new XMLHttpRequest();
       request.open('GET', url, true);
@@ -86,15 +99,26 @@ window.onload = function() {
       var reverb = context.createConvolver();
       reverb.buffer = buffers.reverb;
 
+
+      // Volume
+      var volume_effect = volume_effect_f();
+
       // Connect up effects
+      //source.connect(gain1);
+      //source.connect(reverb);
+      //reverb.connect(gain2);
+      //gain1.connect(volume_effect);
+      //gain2.connect(volume_effect);
+      //volume_effect.connect(context.destination);
+      //
+
       source.connect(volume_effect);
-      volume_effect.connect(reverb);
-      reverb.connect(context.destination);
+      volume_effect.connect(context.destination);
 
       source.start(0);                           // play the source now
     }
 
-    var volume_effect = (function() {
+    var volume_effect_f = function() {
         var node = context.createScriptProcessor(bufferSize, 1, 1);
         node.onaudioprocess = function(e) {
             var input = e.inputBuffer.getChannelData(0);
@@ -105,8 +129,7 @@ window.onload = function() {
             }
         };
         return node;
-    })();
-  
+    };
 
 
     // Now actually load and play the MP3
