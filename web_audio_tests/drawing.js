@@ -2,8 +2,8 @@ var canvas_w = 800;
 var canvas_h = 500;
 var hand_y_min = 0;
 var hand_y_max = 600;
-var hand_x_min = -150;
-var hand_x_max = 150;
+var hand_x_min = -300;
+var hand_x_max = 300;
 
 function setup() {
     createCanvas(800, 500);
