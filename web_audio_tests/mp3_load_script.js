@@ -23,7 +23,7 @@ Leap.loop({ enableGestures: true }, function(frame) {
         hand.x = h.palmPosition[0];
         hand.y = h.palmPosition[1];
     }
-    gain2.gain.value = Math.abs(hand.x)/300.0;
+    gain2.gain.value = Math.abs(hand.x)/200.0;
     gain1.gain.value = 1.0 - gain2.gain.value;
 
     console.log('hand x', hand.x, 'y', hand.y, 'pinch', hand.pinch);
